@@ -280,6 +280,7 @@ func findNodeRecursively(node *html.Node, className string) *html.Node {
 
 func processNode(doc *html.Node, outChannel chan SearchResult) {
 	Result := SearchResult{}
+	isValid := false
 
 	for child := range doc.ChildNodes() {
 		if hasClass(child, "chatlog__embed-title") {
@@ -307,6 +308,11 @@ func processNode(doc *html.Node, outChannel chan SearchResult) {
 			anchorTags := findNodetypeRecursively(linkContainer, "a")
 
 			for _, aContainer := range anchorTags {
+
+				if hasResurivelyText(aContainer, searchText) {
+					isValid = true
+				}
+
 				hrefData := aContainer.Attr[0].Val
 				log.Printf("Found Download link: %s on element %s", hrefData, aContainer.Data)
 
@@ -329,7 +335,7 @@ func processNode(doc *html.Node, outChannel chan SearchResult) {
 	}
 
 	// if the name, source or download dont contain the search text, we are done
-	if hasSearchText(Result.Name, searchText) || hasSearchText(Result.SourceLink, searchText) || hasSearchText(Result.DownloadLink, searchText) {
+	if hasSearchText(Result.Name, searchText) || hasSearchText(Result.SourceLink, searchText) || hasSearchText(Result.DownloadLink, searchText) || isValid {
 		log.Printf("Result found for %s", searchText)
 		log.Printf("Result: %v", Result)
 		outChannel <- Result
